@@ -122,7 +122,6 @@ const search = async (req, res, next) => {
     next(error);
   }
 };
-
 const imageSearch = async (
   req,
   res,
@@ -131,8 +130,24 @@ const imageSearch = async (
 
   try {
 
+    console.log(
+      '\n========== IMAGE SEARCH =========='
+    );
+
+    // DEBUG REQUEST
+    console.log('BODY:', req.body);
+
+    console.log(
+      'FILE:',
+      req.file
+    );
+
     // CHECK IMAGE
     if (!req.file) {
+
+      console.log(
+        'ERROR: req.file is undefined'
+      );
 
       throw ApiError.badRequest(
         'Image file is required'
@@ -140,7 +155,8 @@ const imageSearch = async (
     }
 
     console.log(
-      '\n========== IMAGE SEARCH =========='
+      'Image path:',
+      req.file.path
     );
 
     // GENERATE SEARCH EMBEDDING
@@ -157,7 +173,27 @@ const imageSearch = async (
       'Search embedding generated'
     );
 
+    // DEBUG EMBEDDING
+    console.log(
+      'Embedding length:',
+      searchEmbedding?.length
+    );
+
+    if (
+      !searchEmbedding ||
+      !Array.isArray(searchEmbedding)
+    ) {
+
+      throw new Error(
+        'Embedding generation failed'
+      );
+    }
+
     // ✅ FAST VECTOR SEARCH
+    console.log(
+      'Running vector search...'
+    );
+
     const topProducts =
       await Product.aggregate([
 
@@ -205,27 +241,28 @@ const imageSearch = async (
             preserveNullAndEmptyArrays: true
           }
         },
-{
-  $project: {
 
-    title: 1,
-    slug: 1,
-    price: 1,
-    images: 1,
-    brand: 1,
-    rating: 1,
+        {
+          $project: {
 
-    category: {
-      name: '$category.name',
-      slug: '$category.slug'
-    },
+            title: 1,
+            slug: 1,
+            price: 1,
+            images: 1,
+            brand: 1,
+            rating: 1,
 
-    similarity: {
-      $meta:
-        'vectorSearchScore'
-    }
-  }
-}
+            category: {
+              name: '$category.name',
+              slug: '$category.slug'
+            },
+
+            similarity: {
+              $meta:
+                'vectorSearchScore'
+            }
+          }
+        }
       ]);
 
     console.log(
@@ -252,6 +289,26 @@ const imageSearch = async (
     );
 
   } catch (error) {
+
+    console.error(
+      '\n========== IMAGE SEARCH ERROR =========='
+    );
+
+    console.error(error);
+
+    console.error(
+      'MESSAGE:',
+      error.message
+    );
+
+    console.error(
+      'STACK:',
+      error.stack
+    );
+
+    console.error(
+      '========================================\n'
+    );
 
     next(error);
   }
