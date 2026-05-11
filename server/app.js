@@ -7,7 +7,7 @@ const errorHandler = require('./middleware/errorHandler');
 const paymentController = require('./controllers/paymentController');
 
 const app = express();
-
+app.set('trust proxy', 1);
 // ✅ FIX: ensure raw body is preserved for Stripe
 app.post(
   '/api/payments/webhook',
