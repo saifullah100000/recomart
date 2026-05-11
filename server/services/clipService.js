@@ -5,28 +5,77 @@ const {
   env
 } = require('@xenova/transformers');
 
+// TRANSFORMERS SETTINGS
 env.allowLocalModels = false;
+env.useBrowserCache = false;
 
 let extractor = null;
 
 // LOAD MODEL
 const loadModel = async () => {
 
-  if (!extractor) {
+  try {
 
-    console.log('Loading CLIP model...');
+    if (!extractor) {
 
-    extractor = await pipeline(
-      'image-feature-extraction',
-      'Xenova/clip-vit-base-patch32'
+      console.log(
+        '\n========== LOADING CLIP MODEL =========='
+      );
+
+      console.log(
+        'Starting model initialization...'
+      );
+
+      const startTime = Date.now();
+
+      extractor = await pipeline(
+        'image-feature-extraction',
+        'Xenova/clip-vit-base-patch32'
+      );
+
+      const endTime = Date.now();
+
+      console.log(
+        'CLIP model loaded successfully'
+      );
+
+      console.log(
+        `Model load time: ${
+          (endTime - startTime) / 1000
+        } seconds`
+      );
+
+      console.log(
+        '========================================\n'
+      );
+    }
+
+    return extractor;
+
+  } catch (error) {
+
+    console.error(
+      '\n========== MODEL LOAD ERROR =========='
     );
 
-    console.log(
-      'CLIP model loaded successfully'
+    console.error(error);
+
+    console.error(
+      'MESSAGE:',
+      error.message
     );
+
+    console.error(
+      'STACK:',
+      error.stack
+    );
+
+    console.error(
+      '======================================\n'
+    );
+
+    throw error;
   }
-
-  return extractor;
 };
 
 // GENERATE EMBEDDING
@@ -35,6 +84,10 @@ const generateEmbedding = async (
 ) => {
 
   try {
+
+    console.log(
+      '\n========== GENERATE EMBEDDING =========='
+    );
 
     const extractor =
       await loadModel();
@@ -72,6 +125,12 @@ const generateEmbedding = async (
       imageSource
     );
 
+    console.log(
+      'Starting embedding generation...'
+    );
+
+    const startTime = Date.now();
+
     const output =
       await extractor(
         imageSource,
@@ -81,13 +140,48 @@ const generateEmbedding = async (
         }
       );
 
+    const endTime = Date.now();
+
+    console.log(
+      'Embedding generated successfully'
+    );
+
+    console.log(
+      `Embedding length: ${output.data.length}`
+    );
+
+    console.log(
+      `Embedding generation time: ${
+        (endTime - startTime) / 1000
+      } seconds`
+    );
+
+    console.log(
+      '========================================\n'
+    );
+
     return Array.from(output.data);
 
   } catch (error) {
 
     console.error(
-      'Embedding generation error:',
-      error
+      '\n========== EMBEDDING ERROR =========='
+    );
+
+    console.error(error);
+
+    console.error(
+      'MESSAGE:',
+      error.message
+    );
+
+    console.error(
+      'STACK:',
+      error.stack
+    );
+
+    console.error(
+      '=====================================\n'
     );
 
     throw error;
